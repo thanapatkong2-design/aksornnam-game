@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>ยอดนักสืบไขปริศนาเมืองอักษรนำ</title>
+<style>
+  *{box-sizing:border-box} html,body{margin:0;width:100%;height:100%;background:#071729;font-family:Tahoma,"Noto Sans Thai","Leelawadee UI",sans-serif;overflow:hidden;color:#2f261e}
+  #app{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(circle at center,#183a5d 0,#071729 72%)}
+  #stage{position:relative;width:min(100vw,calc(100vh * 1672 / 941));height:min(100vh,calc(100vw * 941 / 1672));aspect-ratio:1672/941;overflow:hidden;box-shadow:0 0 35px #000b;background:#000}
+  .screen{position:absolute;inset:0;display:none;background-size:100% 100%;background-repeat:no-repeat;background-position:center}.screen.active{display:block}
+  .hotspot{position:absolute;border:0;background:transparent;cursor:pointer;padding:0;outline:none;border-radius:18px}.hotspot:focus-visible{outline:4px solid rgba(255,235,125,.95);outline-offset:4px}.hotspot:hover{background:rgba(255,255,255,.035)}
+  .plain-link{position:absolute;background:rgba(255,248,225,.82);border:1px solid #8b663f;border-radius:999px;padding:.6% 1.2%;font-size:clamp(11px,1.2vw,20px);font-weight:700;cursor:pointer;color:#51371f;box-shadow:0 2px 8px #0003}
+  .board{position:absolute;color:#2d241c;display:flex;flex-direction:column;gap:1.3%;align-items:stretch;justify-content:flex-start;overflow:auto;padding:1.2% 1.6%;scrollbar-width:thin}
+  .board h2,.board h3,.board p{margin:.15em 0}.qtitle{font-weight:800;font-size:clamp(15px,1.55vw,27px);line-height:1.3;text-align:center}.qsub{font-size:clamp(11px,1.02vw,18px);text-align:center;color:#6b4b2b}.qtext{font-size:clamp(13px,1.30vw,23px);font-weight:800;line-height:1.45;text-align:center;margin:.2em 0 .35em}
+  .choices{display:grid;grid-template-columns:1fr 1fr;gap:.65vw}.choice{border:2px solid #b98d58;background:rgba(255,250,229,.92);border-radius:14px;padding:.62em .75em;font-size:clamp(11px,1.04vw,18px);font-weight:700;cursor:pointer;box-shadow:0 2px 7px #0002;text-align:left}.choice:hover{transform:translateY(-1px);background:#fffaf0}.choice.selected{outline:3px solid #286db6;background:#eef7ff}.choice.correct{outline:3px solid #2d8a45;background:#edf9ef}.choice.wrong{outline:3px solid #c54747;background:#fff0f0}
+  .submit{align-self:center;border:2px solid #8b5d22;border-radius:999px;background:linear-gradient(#ffd979,#f3aa2c);padding:.55em 1.8em;font-weight:900;font-size:clamp(12px,1.1vw,20px);cursor:pointer;color:#4a2b10;box-shadow:0 3px 0 #8b5d22,0 6px 15px #0003}.submit:disabled{opacity:.5;cursor:not-allowed}.next{background:linear-gradient(#6eb7ff,#2e76c7);color:white;border-color:#1b4f89;box-shadow:0 3px 0 #1b4f89,0 6px 15px #0003}
+  .feedback{min-height:2.4em;padding:.45em .7em;border-radius:10px;background:rgba(255,248,226,.88);font-size:clamp(10px,.93vw,16px);line-height:1.35}.feedback.good{border:2px solid #4a9a58}.feedback.bad{border:2px solid #c45c52}.progress{display:flex;justify-content:space-between;font-size:clamp(10px,.9vw,16px);font-weight:800;color:#654827}.meter{height:.45em;background:#dbc69f;border-radius:99px;overflow:hidden}.meter>i{display:block;height:100%;background:#d89a27;width:0;transition:.3s}
+  .input-answer{width:100%;border:2px solid #a77d4d;border-radius:12px;background:rgba(255,251,236,.96);padding:.7em 1em;font-size:clamp(12px,1.15vw,20px);text-align:center;font-weight:700;outline:none}.input-answer:focus{border-color:#2c72bd;box-shadow:0 0 0 3px #7db9ff55}
+  .name-input{position:absolute;border:0;background:transparent;text-align:center;font-size:clamp(16px,1.55vw,28px);font-weight:800;color:#4b3827;outline:none}.name-input::placeholder{color:#c3b49f}.name-input:focus{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 2px rgba(76,116,172,.55);border-radius:20px}
+  .selected-mark{position:absolute;pointer-events:none;font-size:clamp(12px,1.1vw,20px);font-weight:900;background:#fff7d8;border:2px solid #d59c2b;border-radius:999px;padding:.3em .7em;color:#604316;box-shadow:0 3px 10px #0004}
+  .hud{position:absolute;left:42%;right:42%;top:1.1%;text-align:center;background:rgba(35,27,20,.84);color:#ffd45e;border:2px solid #e2a83c;border-radius:999px;padding:.4% .6%;font-size:clamp(10px,.85vw,15px);font-weight:900;pointer-events:none;white-space:nowrap}
+  .modal{position:absolute;inset:0;background:rgba(4,10,17,.62);display:none;place-items:center;z-index:30}.modal.show{display:grid}.modal-card{width:min(70%,780px);max-height:76%;overflow:auto;background:#fff5d7;border:5px solid #6e4b28;border-radius:22px;padding:2.2% 2.8%;box-shadow:0 20px 70px #0008;text-align:center}.modal-card h2{margin:.1em 0 .5em;font-size:clamp(18px,2vw,34px)}.modal-card p{font-size:clamp(12px,1.15vw,20px);line-height:1.55}.modal-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}.modal-actions button{border:2px solid #7c542b;border-radius:999px;padding:.65em 1.5em;font-weight:800;cursor:pointer;background:#f7c557;font-size:clamp(12px,1vw,18px)}
+  .mission-intro{position:absolute;left:29.4%;top:16%;width:40.5%;height:58%;padding:3% 3.2%;background:rgba(255,246,218,.9);border-radius:16px;display:none;z-index:8;text-align:center;box-shadow:0 8px 30px #0005}.mission-intro.show{display:flex;flex-direction:column;justify-content:center}.mission-intro h2{font-size:clamp(18px,1.8vw,32px);margin:.2em}.mission-intro p{font-size:clamp(11px,1vw,18px);line-height:1.5;margin:.35em}.mission-intro button{margin:.5em auto 0}
+  .big-clue{font-size:clamp(52px,7vw,110px);text-align:center;line-height:1.05;margin:.05em}.word-bank{font-size:clamp(10px,.9vw,16px);text-align:center;color:#795638;background:#f8e8c6b8;border-radius:10px;padding:.45em}.cert-name{position:absolute;left:69.5%;top:80.2%;width:22%;text-align:center;color:#5d4632;font-weight:800;font-size:clamp(10px,1vw,18px);transform:rotate(-1deg)}
+  .final-stats{position:absolute;inset:0;font-weight:900;text-align:center;color:#51341f;pointer-events:none}.final-message{position:absolute;left:36.5%;top:25.5%;width:38%;height:24%;display:flex;align-items:center;justify-content:center;padding:1.2%;box-sizing:border-box;font-size:clamp(14px,1.35vw,24px);line-height:1.5}.pre-score,.post-score{position:absolute;top:61.5%;width:17.5%;font-size:clamp(20px,2.3vw,42px);color:#4c3422}.pre-score{left:36.2%}.post-score{left:56.3%}.final-total{position:absolute;left:39%;top:76.2%;width:28%;font-size:clamp(13px,1.25vw,22px);color:#fff4cf;text-shadow:0 2px 3px #0008}.final-status{position:absolute;left:36.5%;top:48.5%;width:38%;font-size:clamp(11px,1vw,18px);line-height:1.35}
+  @media (max-width:750px){.choices{gap:4px}.choice{border-width:1px;border-radius:8px}.submit{border-width:1px}.feedback{padding:.25em .4em}.board{padding:1% 1.3%}}
+
+  .music-toggle{position:fixed;right:18px;top:18px;z-index:2147483647;border:3px solid #fff;border-radius:999px;background:#173d6b;color:#fff;padding:12px 18px;font-weight:900;font-size:clamp(14px,1.2vw,20px);cursor:pointer;box-shadow:0 5px 18px #0008;min-width:150px;pointer-events:auto}
+  .music-toggle:hover{background:rgba(42,65,91,.92)}
+
+  #introOverlay{position:fixed;inset:0;z-index:999999;background:#000;display:flex;align-items:center;justify-content:center}#introOverlay.hidden{display:none}#introVideo{width:100%;height:100%;object-fit:contain;background:#000}#introStart{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;border:3px solid #fff;border-radius:999px;background:rgba(8,39,72,.92);color:#fff;font-weight:800;font-size:clamp(18px,2.2vw,34px);padding:.7em 1.5em;cursor:pointer;box-shadow:0 6px 24px #0009}#introSkip{position:absolute;right:2%;top:2%;z-index:4;border:2px solid #fff;border-radius:999px;background:rgba(0,0,0,.65);color:#fff;font-weight:800;font-size:clamp(13px,1.3vw,22px);padding:.55em 1em;cursor:pointer}#introHint{position:absolute;left:50%;bottom:4%;transform:translateX(-50%);z-index:3;color:#fff;background:rgba(0,0,0,.55);padding:.45em .9em;border-radius:999px;font-size:clamp(11px,1vw,17px);white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="introOverlay" aria-label="วิดีโอเปิดเรื่อง"><video id="introVideo" src="intro.mp4" playsinline preload="metadata"></video><button id="introStart" type="button">▶ เล่นวิดีโอเปิดเรื่อง</button><button id="introSkip" type="button">ข้าม ▶</button><div id="introHint">เมื่อวิดีโอจบ จะเข้าสู่หน้าปกเกมอัตโนมัติ</div></div>
+
+<div id="app"><main id="stage" aria-label="เกมยอดนักสืบไขปริศนาเมืองอักษรนำ">
+  <section id="cover" class="screen active"></section>
+  <section id="how" class="screen"></section>
+  <section id="select" class="screen"></section>
+  <section id="story" class="screen"></section>
+  <section id="pre" class="screen"><div class="board" id="preBoard"></div></section>
+  <section id="map" class="screen"></section>
+  <section id="base1" class="screen"><div class="board" id="b1Board"></div></section>
+  <section id="base2" class="screen"><div class="board" id="b2Board"></div></section>
+  <section id="base3" class="screen"><div class="board" id="b3Board"></div></section>
+  <section id="base4" class="screen"><div class="board" id="b4Board"></div></section>
+  <section id="post" class="screen"><div class="board" id="postBoard"></div></section>
+  <section id="success" class="screen"></section>
+
+  <button id="musicToggle" class="music-toggle" type="button" aria-label="เปิดหรือปิดเพลงประกอบ">🔊 เปิดเสียง</button>
+  <div id="modal" class="modal"><div class="modal-card"><h2 id="modalTitle"></h2><p id="modalText"></p><div class="modal-actions" id="modalActions"></div></div></div>
+</main></div>
+<script>
+const BG={"cover":"bg01.webp","how":"bg02.webp","select":"bg03.webp","story":"bg04.webp","map":"bg05.webp","pre":"bg06.webp","base1":"bg07.webp","base2":"bg08.webp","base3":"bg09.webp","base4":"bg10.webp","post":"bg11.webp","success":"bg12.webp"};
+const screens=[...document.querySelectorAll('.screen')];
+Object.entries(BG).forEach(([k,v])=>{const el=document.getElementById(k); if(el) el.style.backgroundImage=`url(${v})`;});
+const state={name:'',character:'girl',preScore:0,postScore:0,stars:[0,0,0,0],done:[false,false,false,false],startedAt:Date.now()};
+const $=s=>document.querySelector(s);
+function show(id){screens.forEach(x=>x.classList.toggle('active',x.id===id));}
+function addHot(screenId,cls,left,top,width,height,fn,label=''){const s=document.getElementById(screenId),b=document.createElement('button');b.className='hotspot '+(cls||'');Object.assign(b.style,{left:left+'%',top:top+'%',width:width+'%',height:height+'%'});b.setAttribute('aria-label',label||'ปุ่ม');b.onclick=fn;s.appendChild(b);return b}
+function modal(title,text,buttons=[['ตกลง',()=>closeModal()]]){$('#modalTitle').textContent=title;$('#modalText').innerHTML=text;const a=$('#modalActions');a.innerHTML='';buttons.forEach(([t,fn])=>{const b=document.createElement('button');b.textContent=t;b.onclick=fn;a.appendChild(b)});$('#modal').classList.add('show')}
+function closeModal(){$('#modal').classList.remove('show')}
+function elapsed(){const s=Math.floor((Date.now()-state.startedAt)/1000),m=Math.floor(s/60);return `${m}:${String(s%60).padStart(2,'0')}`}
+function totalStars(){return state.stars.reduce((a,b)=>a+b,0)}
+function normalize(s){return String(s||'').trim().replace(/[–—−]/g,'-').replace(/\s+/g,'').toLowerCase()}
+function makeHud(screen){const h=document.createElement('div');h.className='hud';h.id=screen+'Hud';document.getElementById(screen).appendChild(h);return h}
+['base1','base2','base3','base4'].forEach(makeHud);
+setInterval(()=>['base1','base2','base3','base4'].forEach(id=>{const h=document.getElementById(id+'Hud');if(h)h.textContent=`⭐ ${totalStars()} | ⏱ ${elapsed()}`}),1000);
+
+
+// เพลงประกอบแบบสังเคราะห์ในตัวเกม (ไม่ต้องใช้ไฟล์เพลงภายนอก)
+// เวอร์ชันนี้ปรับให้มีจังหวะตื่นเต้นแบบภารกิจนักสืบ และเพิ่มความดังขึ้น 30% จากเวอร์ชันก่อน
+// เบราว์เซอร์จะเริ่มเสียงหลังผู้เล่นคลิก/แตะครั้งแรกตามนโยบาย autoplay
+let musicCtx=null, musicMaster=null, musicTimer=null, musicOn=true, musicStep=0;
+const musicNotes=[220.00,261.63,329.63,392.00,440.00,392.00,329.63,293.66,246.94,293.66,349.23,440.00,493.88,440.00,349.23,293.66];
+const musicBass=[110.00,110.00,98.00,98.00,123.47,123.47,110.00,110.00];
+function ensureMusic(){
+  if(!musicOn)return;
+  if(!musicCtx){
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)return;
+    musicCtx=new AC();
+    musicMaster=musicCtx.createGain();
+    musicMaster.gain.value=0.086; // 0.066 x 1.30 ≈ 0.086
+    musicMaster.connect(musicCtx.destination);
+  }
+  if(musicCtx.state==='suspended') musicCtx.resume();
+  if(!musicTimer){
+    playMusicNote();
+    musicTimer=setInterval(playMusicNote,520); // เร็วขึ้น ให้ความรู้สึกเร่งเร้าแบบกำลังตามเบาะแส
+  }
+}
+function playMusicNote(){
+  if(!musicCtx||!musicMaster||!musicOn)return;
+  const now=musicCtx.currentTime;
+  const f=musicNotes[musicStep%musicNotes.length];
+
+  // เมโลดี้หลัก: เสียงสั้น กระชับ คล้ายเกมผจญภัย/สืบสวน
+  const osc=musicCtx.createOscillator();
+  const gain=musicCtx.createGain();
+  osc.type=(musicStep%4===3)?'triangle':'square';
+  osc.frequency.value=f;
+  gain.gain.setValueAtTime(0.0001,now);
+  gain.gain.exponentialRampToValueAtTime(0.22,now+0.018);
+  gain.gain.exponentialRampToValueAtTime(0.0001,now+0.34);
+  osc.connect(gain); gain.connect(musicMaster);
+  osc.start(now); osc.stop(now+0.38);
+
+  // เบสเต้นทุกจังหวะ สร้างความรู้สึกเดินหน้าทำภารกิจ
+  const bass=musicCtx.createOscillator(), bg=musicCtx.createGain();
+  bass.type='triangle'; bass.frequency.value=musicBass[musicStep%musicBass.length];
+  bg.gain.setValueAtTime(0.0001,now);
+  bg.gain.exponentialRampToValueAtTime((musicStep%2===0)?0.18:0.11,now+0.025);
+  bg.gain.exponentialRampToValueAtTime(0.0001,now+0.42);
+  bass.connect(bg); bg.connect(musicMaster); bass.start(now); bass.stop(now+0.46);
+
+  // เสียงประสานสูงทุก 4 จังหวะ เพิ่มอารมณ์ลุ้นระทึก
+  if(musicStep%4===0){
+    const o2=musicCtx.createOscillator(), g2=musicCtx.createGain();
+    o2.type='sawtooth'; o2.frequency.value=f*2;
+    g2.gain.setValueAtTime(0.0001,now);
+    g2.gain.exponentialRampToValueAtTime(0.055,now+0.02);
+    g2.gain.exponentialRampToValueAtTime(0.0001,now+0.18);
+    o2.connect(g2); g2.connect(musicMaster); o2.start(now); o2.stop(now+0.2);
+  }
+
+  // จังหวะเคาะสั้น ๆ ทุกสองจังหวะ (noise-free pulse)
+  if(musicStep%2===0){
+    const p=musicCtx.createOscillator(), pg=musicCtx.createGain();
+    p.type='square'; p.frequency.value=72;
+    pg.gain.setValueAtTime(0.0001,now);
+    pg.gain.exponentialRampToValueAtTime(0.10,now+0.006);
+    pg.gain.exponentialRampToValueAtTime(0.0001,now+0.07);
+    p.connect(pg); pg.connect(musicMaster); p.start(now); p.stop(now+0.08);
+  }
+  musicStep++;
+}
+function stopMusic(){
+  if(musicTimer){clearInterval(musicTimer);musicTimer=null;}
+  if(musicCtx&&musicCtx.state==='running') musicCtx.suspend();
+}
+function updateMusicButton(){
+  const b=document.getElementById('musicToggle'); if(!b)return;
+  b.textContent=musicOn?'🔊 เปิดเสียง':'🔇 ปิดเสียง';
+}
+document.addEventListener('pointerdown',()=>ensureMusic(),{once:true});
+document.addEventListener('keydown',()=>ensureMusic(),{once:true});
+const musicToggle=document.getElementById('musicToggle');
+if(musicToggle){musicToggle.addEventListener('click',(e)=>{e.stopPropagation();musicOn=!musicOn;if(musicOn)ensureMusic();else stopMusic();updateMusicButton();});}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)stopMusic();else if(musicOn)ensureMusic();});
+updateMusicButton();
+
+// เสียงเอฟเฟกต์ของเกม: คลิก / ตอบถูก / ตอบผิด / ปลดล็อก / ภารกิจสำเร็จ
+function sfxTone(freq,start,duration,volume=0.12,type='sine',endFreq=null){
+  if(!musicOn)return;
+  ensureMusic();
+  if(!musicCtx)return;
+  const t=musicCtx.currentTime+start;
+  const osc=musicCtx.createOscillator();
+  const gain=musicCtx.createGain();
+  osc.type=type;
+  osc.frequency.setValueAtTime(freq,t);
+  if(endFreq) osc.frequency.exponentialRampToValueAtTime(endFreq,t+duration);
+  gain.gain.setValueAtTime(0.0001,t);
+  gain.gain.exponentialRampToValueAtTime(volume,t+0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001,t+duration);
+  osc.connect(gain); gain.connect(musicCtx.destination);
+  osc.start(t); osc.stop(t+duration+0.03);
+}
+function playSfx(kind){
+  if(!musicOn)return;
+  if(kind==='click'){
+    sfxTone(720,0,0.055,0.055,'square',900);
+  }else if(kind==='correct'){
+    sfxTone(523.25,0,0.16,0.13,'sine');
+    sfxTone(659.25,0.10,0.18,0.13,'sine');
+    sfxTone(783.99,0.20,0.28,0.15,'triangle');
+  }else if(kind==='wrong'){
+    sfxTone(245,0,0.18,0.10,'sawtooth',180);
+    sfxTone(180,0.16,0.24,0.09,'sawtooth',120);
+  }else if(kind==='unlock'){
+    sfxTone(392,0,0.12,0.10,'triangle');
+    sfxTone(523.25,0.10,0.16,0.12,'triangle');
+    sfxTone(659.25,0.22,0.18,0.13,'triangle');
+    sfxTone(783.99,0.36,0.30,0.15,'sine');
+  }else if(kind==='complete'){
+    sfxTone(440,0,0.14,0.10,'triangle');
+    sfxTone(554.37,0.12,0.16,0.11,'triangle');
+    sfxTone(659.25,0.24,0.18,0.12,'triangle');
+  }else if(kind==='success'){
+    [523.25,659.25,783.99,1046.5].forEach((f,i)=>sfxTone(f,i*0.12,0.32,0.14,'triangle'));
+    sfxTone(392,0.52,0.48,0.11,'sine');
+    sfxTone(783.99,0.52,0.58,0.15,'sine');
+  }
+}
+// ทุกปุ่มมีเสียงคลิกสั้น ๆ รวมถึงปุ่มโปร่งใสที่วางทับกราฟิก
+// ปุ่มเสียงเองไม่เล่นเสียงคลิก เพื่อไม่ให้เกิดเสียงตอนกดปิดเสียง
+ document.addEventListener('click',(e)=>{
+   const b=e.target.closest('button');
+   if(b && b.id!=='musicToggle' && !b.disabled) playSfx('click');
+ },true);
+
+// Cover: use the artwork buttons directly as transparent hit areas.
+addHot('cover','',28.2,78.1,22.0,13.2,()=>show('how'),'วิธีเล่น');
+addHot('cover','',51.5,78.1,22.0,13.2,()=>show('select'),'เริ่มเกม');
+// ปุ่มกลับหน้าปกบนหน้าวิธีเล่น (แสดงผลจริงและกดได้)
+const howBack=document.createElement('button');
+howBack.className='plain-link how-back';
+howBack.textContent='← กลับหน้าปก';
+Object.assign(howBack.style,{left:'3%',bottom:'3%',top:'auto',background:'linear-gradient(#9a6435,#69401f)',color:'#fff6d7',border:'3px solid #d7a35a',borderRadius:'18px',padding:'.7em 1.25em',fontWeight:'900',fontSize:'clamp(14px,1.25vw,22px)',boxShadow:'0 5px 0 #3d2514,0 8px 18px #0005',cursor:'pointer'});
+howBack.onclick=()=>show('cover');
+document.getElementById('how').appendChild(howBack);
+
+// Select character and name field are aligned to the existing graphic.
+const nameInput=document.createElement('input');nameInput.className='name-input';nameInput.placeholder='กรอกชื่อของคุณที่นี่';Object.assign(nameInput.style,{left:'36.2%',top:'46.2%',width:'28.9%',height:'9.6%'});document.getElementById('select').appendChild(nameInput);
+let mark=document.createElement('div');mark.className='selected-mark';mark.style.left='13%';mark.style.top='70%';mark.textContent='✓ เลือกแล้ว';document.getElementById('select').appendChild(mark);
+function selectChar(c){state.character=c;mark.style.left=c==='girl'?'13%':'77%';mark.textContent=c==='girl'?'✓ นักสืบหญิง':'✓ นักสืบชาย'}
+addHot('select','',4.1,15.3,25.2,64,()=>selectChar('girl'),'เลือกนักสืบหญิง');
+addHot('select','',70.6,15.3,25.2,64,()=>selectChar('boy'),'เลือกนักสืบชาย');
+addHot('select','',33.3,80.1,34.3,14.5,()=>{state.name=nameInput.value.trim();if(!state.name){modal('กรุณาใส่ชื่อผู้เล่น','พิมพ์ชื่อในช่องบนบัตรประจำตัวนักสืบก่อนเริ่มภารกิจ');return}show('story')},'เริ่มภารกิจ');
+addHot('select','',0,88,12,12,()=>show('cover'),'กลับ');
+
+addHot('story','',8.2,80.1,31.5,14.7,()=>{state.startedAt=Date.now();startQuiz('pre')},'รับภารกิจ');
+const backStory=document.createElement('button');backStory.className='plain-link';backStory.textContent='← กลับหน้าปก';Object.assign(backStory.style,{left:'3%',top:'3%'});backStory.onclick=()=>show('cover');document.getElementById('story').appendChild(backStory);
+
+const quizQuestions=[
+{q:'ข้อใดเป็นคำที่มี “อ นำ ย” ทุกคำ',o:['อย่า - อยู่ - อยาก','อย่า - อิ่ม - อาบ','อยู่ - อ่อน - อ้วน','อยาก - อาย - อ่าว'],a:0,e:'อย่า อยู่ อยาก เป็นคำที่มี อ นำ ย'},
+{q:'ข้อใดเป็นคำที่มี “ห นำ” ทั้งหมด',o:['หมอ, หวี, หลับ','กลอง, เปลว, ควาย','พรุ่ง, สร้าง, ตรวจ','บทเรียน, กระดาษ, ตลาด'],a:0,e:'หมอ หวี หลับ เป็นคำที่มี ห นำ'},
+{q:'ข้อใดอ่านออกเสียงเป็น 2 พยางค์ (พยางค์แรกออกเสียง อะ กึ่งเสียง พยางค์หลังออกเสียงเหมือนมี ห นำ)',o:['หมอ (อ่านว่า หมอ)','หมา (อ่านว่า หมา)','อยู่ (อ่านว่า อยู่)','ขนม (อ่านว่า ขะ-หนม)'],a:3,e:'ขนม อ่านว่า ขะ-หนม'},
+{q:'ข้อใดมีคำที่เป็นอักษรนำ',o:['กล้า','พระ','ตลาด','ปรับ'],a:2,e:'ตลาด เป็นคำอักษรนำ'},
+{q:'คำว่า “องุ่น” มีพยัญชนะใดเป็นตัวนำ',o:['อ นำ','ห นำ','ร นำ','ล นำ'],a:0,e:'องุ่น มี อ เป็นพยัญชนะนำ'},
+{q:'ข้อใดไม่ใช่คำอักษรนำ',o:['หวาน','ขยับ','กวาง','จรวด'],a:2,e:'กวาง เป็นอักษรควบ ไม่ใช่อักษรนำ'},
+{q:'ข้อใดอ่านถูกต้อง',o:['หลับ อ่านว่า หะ-ลับ','อยู่ อ่านว่า อะ-ยู่','องุ่น อ่านว่า อะ-งุ่น','ถนน อ่านว่า ถะ-หนน'],a:3,e:'ถนน อ่านว่า ถะ-หนน'},
+{q:'คำในข้อใดเป็นอักษรนำ ทุกคำ',o:['หญ้า ทรง หลับ','อย่า ถนน ตลาด','เหมือน ไทร สร้อย','ศรี หลง หนาว'],a:1,e:'อย่า ถนน ตลาด เป็นคำอักษรนำทุกคำ'},
+{q:'ข้อใดเป็น ห นำ ม',o:['หมอ','หนาว','หวาน','หงาย'],a:0,e:'หมอ เป็นคำที่ ห นำ ม'},
+{q:'ข้อใดมีคำที่มีอักษรนำปนอยู่',o:['น้องดื่มนมทุกวัน','น้องอยากไปเชียงใหม่','น้องทำการบ้าน','น้องไปโรงเรียน'],a:1,e:'ประโยค “น้องอยากไปเชียงใหม่” มีคำว่า อยาก ซึ่งเป็น อ นำ ย'}
+];
+const postOrder=[4,1,0,3,2,6,9,5,7,8];
+let quizCtx=null;
+function startQuiz(kind){quizCtx={kind,index:0,score:0,answered:false,selected:null};show(kind);renderQuiz()}
+function currentQuiz(){return quizCtx.kind==='pre'?quizQuestions[quizCtx.index]:quizQuestions[postOrder[quizCtx.index]]}
+function renderQuiz(){const kind=quizCtx.kind,b=document.getElementById(kind+'Board');Object.assign(b.style,{left:'31.5%',top:'18.2%',width:'42.6%',height:'56.5%'});const q=currentQuiz();b.innerHTML=`<div class="progress"><span>${kind==='pre'?'แบบทดสอบก่อนเรียน':'แบบทดสอบหลังเรียน'} ข้อ ${quizCtx.index+1}/10</span><span>⭐ ${quizCtx.score}/10</span></div><div class="meter"><i style="width:${quizCtx.index*10}%"></i></div><div class="qtext">${q.q}</div><div class="choices">${q.o.map((x,i)=>`<button class="choice" data-i="${i}">${'กขคง'[i]}. ${x}</button>`).join('')}</div><div class="feedback" id="qFeed">เลือกคำตอบ แล้วกด “ส่งคำตอบ”</div><button class="submit" id="qSubmit">ส่งคำตอบ</button>`;
+ b.querySelectorAll('.choice').forEach(x=>x.onclick=()=>{if(quizCtx.answered)return;quizCtx.selected=+x.dataset.i;b.querySelectorAll('.choice').forEach(y=>y.classList.toggle('selected',y===x))});
+ b.querySelector('#qSubmit').onclick=submitQuiz;
+}
+function submitQuiz(){const b=document.getElementById(quizCtx.kind+'Board'),q=currentQuiz(),btn=b.querySelector('#qSubmit');if(quizCtx.selected===null){modal('ยังไม่ได้เลือกคำตอบ','เลือกคำตอบ 1 ตัวเลือกก่อนกดส่งคำตอบ');return}if(!quizCtx.answered){quizCtx.answered=true;const ok=quizCtx.selected===q.a;if(ok)quizCtx.score++;playSfx(ok?'correct':'wrong');b.querySelectorAll('.choice').forEach((x,i)=>{x.classList.remove('selected');if(i===q.a)x.classList.add('correct');else if(i===quizCtx.selected)x.classList.add('wrong')});const f=b.querySelector('#qFeed');f.className='feedback '+(ok?'good':'bad');f.innerHTML=(ok?'✅ ถูกต้อง! ':'❌ ยังไม่ถูกต้อง — ')+q.e;btn.textContent=quizCtx.index===9?'ดูผลคะแนน':'ข้อต่อไป';btn.classList.add('next')}else{quizCtx.index++;quizCtx.answered=false;quizCtx.selected=null;if(quizCtx.index>=10){if(quizCtx.kind==='pre'){state.preScore=quizCtx.score;modal('ผลแบบทดสอบก่อนเรียน',`คุณ ${state.name} ได้ <b>${state.preScore}/10 ดาว</b><br>ต่อไปเข้าสู่แผนที่เมืองอักษรนำ`,[['เข้าสู่แผนที่',()=>{closeModal();show('map')}]]);}else{state.postScore=quizCtx.score;finishGame()}return}renderQuiz()}}
+
+// Map hotspots use the numbered places already drawn in the artwork.
+addHot('map','',33.0,23.8,10.0,17.5,()=>openBase(0),'ฐานที่ 1 หมู่บ้านนักสำรวจ');
+addHot('map','',66.0,20.2,10.5,17.7,()=>openBase(1),'ฐานที่ 2 หมู่บ้านนักคิด');
+addHot('map','',69.7,57.0,10.5,17.5,()=>openBase(2),'ฐานที่ 3 หมู่บ้านนักอ่าน');
+addHot('map','',37.3,61.0,10.7,17.3,()=>openBase(3),'ฐานที่ 4 หมู่บ้านผู้พิชิต');
+addHot('map','',10.0,85.0,10.0,12.0,()=>modal('ความคืบหน้า',progressText()),'ภารกิจ');
+function progressText(){return `นักสืบ: <b>${state.name}</b><br>แบบทดสอบก่อนเรียน: ${state.preScore}/10 ดาว<br>ฐาน 1: ${state.stars[0]}/50 ดาว<br>ฐาน 2: ${state.stars[1]}/25 ดาว<br>ฐาน 3: ${state.stars[2]}/50 ดาว<br>ฐาน 4: ${state.stars[3]}/25 ดาว<br><b>ดาวภารกิจรวม ${totalStars()}/150</b>`}
+function openBase(i){if(i>0&&!state.done[i-1]){modal('ฐานยังไม่พร้อม','ต้องทำฐานก่อนหน้าให้เสร็จก่อน เพื่อเชื่อมโยงเบาะแสตามลำดับ');return}show('base'+(i+1));showMissionIntro(i)}
+const missionMeta=[
+ ['ภารกิจที่ 1 : แฟ้มคดีลับ','หมู่บ้านนักสำรวจพบแฟ้มคำต้องสงสัย นักสืบต้องจับคู่คำอักษรนำกับคำอ่านที่ถูกต้อง','จำแนกและอ่านคำอักษรนำได้ถูกต้อง'],
+ ['ภารกิจที่ 2 : ตามรอยเงื่อนงำ','รอยเท้าปริศนาพาไปยังถนนยามค่ำ คืนนี้ทุกประโยคมีคำสำคัญหายไป','เลือกคำอักษรนำเติมในประโยคให้เหมาะสม'],
+ ['ภารกิจที่ 3 : ไขรหัสลับ','ห้องรหัสลับซ่อนภาพคำปริศนาไว้ นักสืบต้องถอดรหัสจากภาพทีละใบ','เชื่อมโยงภาพกับคำอักษรนำและเขียนคำได้ถูกต้อง'],
+ ['ภารกิจที่ 4 : สรุปสำนวนคดี','หลักฐานจากทุกฐานถูกรวมบนกระดานสืบสวน เหลือเพียงเขียนคำอ่านเพื่อปิดคดี','สรุปความรู้และเขียนคำอ่านของคำอักษรนำได้ถูกต้อง']
+];
+function showMissionIntro(i){const sid='base'+(i+1),s=document.getElementById(sid);let box=s.querySelector('.mission-intro');if(!box){box=document.createElement('div');box.className='mission-intro';s.appendChild(box)}const [t,n,g]=missionMeta[i];box.innerHTML=`<h2>${t}</h2><p>${n}</p><p><b>🎯 เป้าหมายการเรียนรู้:</b><br>${g}</p><button class="submit">เริ่มไขปริศนา</button>`;box.classList.add('show');box.querySelector('button').onclick=()=>{box.classList.remove('show');startBase(i)}}
+function addBaseNav(id,hintFn){addHot(id,'',1,1,14,12,()=>show('map'),'กลับแผนที่'); if(hintFn) addHot(id,'',25.5,16,9,18,hintFn,'คำใบ้');}
+
+const b1=[['หมอ','หอ-มอ-ออ'],['หวี','หอ-วอ-อี'],['หนู','หอ-นอ-อู'],['หนาว','หอ-นอ-อา-วอ'],['ใหญ่','หอ-ยอ-ไอ-ไหย-ไม้เอก'],['ขนม','ขะ-หนม'],['ฉลาม','ฉะ-หลาม'],['ฝรั่ง','ฝะ-หรั่ง'],['ถนน','ถะ-หนน'],['ตลก','ตะ-หลก']];
+const readPool=b1.map(x=>x[1]);let baseCtx={};
+function startBase(i){baseCtx={i,index:0,score:0,answered:false,selected:null};renderBase()}
+function renderBase(){const i=baseCtx.i;if(i===0)renderB1();if(i===1)renderB2();if(i===2)renderB3();if(i===3)renderB4()}
+function commonProgress(board,max){return `<div class="progress"><span>ข้อ ${baseCtx.index+1}/${max}</span><span>⭐ ${baseCtx.score}</span></div><div class="meter"><i style="width:${baseCtx.index/max*100}%"></i></div>`}
+function finishBase(i,maxScore){state.stars[i]=baseCtx.score;state.done[i]=true;playSfx(i<3?'unlock':'complete');modal(`สรุปฐานที่ ${i+1}`,`ตอบถูก <b>${baseCtx.score/5}</b> ข้อ<br>ได้รับ <b>${baseCtx.score}/${maxScore} ดาว</b><br>ดาวภารกิจสะสม <b>${totalStars()} ดาว</b>`,[[i<3?'กลับแผนที่และปลดล็อกฐานถัดไป':'ไปแบบทดสอบหลังเรียน',()=>{closeModal(); if(i<3)show('map');else startQuiz('post')}]]);}
+function randomChoices(correct,idx){const pool=readPool.filter(x=>x!==correct);const picks=[correct];while(picks.length<4){const x=pool[Math.floor(Math.random()*pool.length)];if(!picks.includes(x))picks.push(x)}for(let i=picks.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[picks[i],picks[j]]=[picks[j],picks[i]]}return picks}
+function renderB1(){const b=$('#b1Board');Object.assign(b.style,{left:'28.5%',top:'17.0%',width:'41.8%',height:'50.5%'});const [word,ans]=b1[baseCtx.index],opts=randomChoices(ans);b.innerHTML=commonProgress(b,10)+`<div class="qtitle">จับคู่คำอักษรนำกับคำอ่านที่ถูกต้อง</div><div class="qtext" style="font-size:clamp(28px,3.1vw,52px)">${word}</div><div class="choices">${opts.map((x,j)=>`<button class="choice" data-v="${x}">${x}</button>`).join('')}</div><div class="word-bank">ตัวลวงในแฟ้มคดี: องุ่น · ตลาด · สบาย · สนุก · ขยะ</div><div class="feedback" id="bFeed">เลือกคำอ่าน แล้วส่งคำตอบ</div><button class="submit" id="bSubmit">ส่งคำตอบ</button>`;wireChoiceBase(ans,`“${word}” อ่านว่า ${ans}`,10,50)}
+function wireChoiceBase(ans,ex,max,maxScore){const b=document.querySelector('#b'+(baseCtx.i+1)+'Board');b.querySelectorAll('.choice').forEach(x=>x.onclick=()=>{if(baseCtx.answered)return;baseCtx.selected=x.dataset.v;b.querySelectorAll('.choice').forEach(y=>y.classList.toggle('selected',y===x))});b.querySelector('#bSubmit').onclick=()=>{if(baseCtx.selected===null){modal('เลือกคำตอบก่อน','กรุณาเลือกคำตอบก่อนส่ง');return}if(!baseCtx.answered){baseCtx.answered=true;const ok=normalize(baseCtx.selected)===normalize(ans);if(ok)baseCtx.score+=5;playSfx(ok?'correct':'wrong');b.querySelectorAll('.choice').forEach(x=>{x.classList.remove('selected');if(normalize(x.dataset.v)===normalize(ans))x.classList.add('correct');else if(normalize(x.dataset.v)===normalize(baseCtx.selected))x.classList.add('wrong')});const f=b.querySelector('#bFeed');f.className='feedback '+(ok?'good':'bad');f.innerHTML=(ok?'✅ ถูกต้อง +5 ดาว — ':'❌ ข้อนี้ได้ 0 ดาว — ')+ex;const sb=b.querySelector('#bSubmit');sb.textContent=baseCtx.index===max-1?'สรุปผลฐาน':'ข้อต่อไป';sb.classList.add('next')}else{baseCtx.index++;baseCtx.answered=false;baseCtx.selected=null;if(baseCtx.index>=max){finishBase(baseCtx.i,maxScore);return}renderBase()}}}
+addBaseNav('base1',()=>modal('คำใบ้ฐานที่ 1','สังเกตเสียงพยัญชนะต้น และพิจารณาว่าคำใดมี ห นำ หรือมีพยางค์แรกออกเสียง อะ กึ่งเสียง'));
+
+const b2=[
+ ['น้อง...........กับการเล่นเกมไขคดีมาก',['สนุก','สนาม','สะหนุก'],'สนุก'],
+ ['แม่ใส่...........เพชรวงใหญ่',['แหวม','แหวน','แหวง'],'แหวน'],
+ ['คุณ..........ตรวจรักษาคนไข้',['หมี','หมู','หมอ'],'หมอ'],
+ ['ฉัน...........บ้านกับคุณตาและคุณยาย',['อยู่','อยาก','อย่า'],'อยู่'],
+ ['แม่ทำอาหารรสชาติ..............มาก',['อะหร่อย','อร่อย','อหร่อย'],'อร่อย']
+];
+function renderB2(){const b=$('#b2Board');Object.assign(b.style,{left:'29.7%',top:'14.5%',width:'39.5%',height:'48.5%'});const [q,opts,ans]=b2[baseCtx.index];b.innerHTML=commonProgress(b,5)+`<div class="qtitle">ตามรอยเงื่อนงำ</div><div class="qtext">${q}</div><div class="choices">${opts.map(x=>`<button class="choice" data-v="${x}">${x}</button>`).join('')}</div><div class="feedback" id="bFeed">เลือกคำอักษรนำที่เหมาะสมเติมในช่องว่าง</div><button class="submit" id="bSubmit">ส่งคำตอบ</button>`;wireChoiceBase(ans,`คำตอบที่ถูกต้องคือ “${ans}”`,5,25)}
+addBaseNav('base2',()=>modal('คำใบ้ฐานที่ 2','อ่านประโยคทั้งประโยค แล้วเลือกคำที่เขียนถูกและมีความหมายสอดคล้องกับบริบท'));
+
+const b3=[
+ ['🍰','ขนม','ของกินหรือของว่าง'],['🍈','ขนุน','ผลไม้เนื้อสีเหลือง มีกลิ่นเฉพาะ'],['🧠','สมอง','อวัยวะสำคัญอยู่ในศีรษะ'],['🍇','องุ่น','ผลไม้เป็นพวง'],['🛒','ตลาด','สถานที่ซื้อขายสินค้า'],['🏟️','สนาม','พื้นที่สำหรับทำกิจกรรมหรือกีฬา'],['🚀','จรวด','ยานที่พุ่งขึ้นสู่อวกาศ'],['🍐','ฝรั่ง','ผลไม้เนื้อกรอบ ใช้ภาพผลไม้เป็นเบาะแส'],['👃','จมูก','อวัยวะสำหรับดมกลิ่น'],['😋','อร่อย','คำบอกลักษณะรสชาติที่ดี']
+];
+function renderB3(){const b=$('#b3Board');Object.assign(b.style,{left:'27.6%',top:'12.7%',width:'43.2%',height:'62.5%'});const [icon,ans,hint]=b3[baseCtx.index];b.innerHTML=commonProgress(b,10)+`<div class="qtitle">ถอดรหัสคำจากภาพปริศนา</div><div class="big-clue">${icon}</div><input id="bInput" class="input-answer" autocomplete="off" placeholder="พิมพ์คำตอบที่นี่"><div class="feedback" id="bFeed">ภาพปริศนาหมายถึงคำว่าอะไร?</div><button class="submit" id="bSubmit">ส่งคำตอบ</button>`;wireInputBase(ans,`ภาพนี้เฉลยว่า “${ans}”`,10,50,hint)}
+function wireInputBase(ans,ex,max,maxScore,hint){const b=document.querySelector('#b'+(baseCtx.i+1)+'Board'),inp=b.querySelector('#bInput');baseCtx.currentHint=hint;inp.onkeydown=e=>{if(e.key==='Enter')b.querySelector('#bSubmit').click()};b.querySelector('#bSubmit').onclick=()=>{if(!baseCtx.answered){const v=inp.value;if(!v.trim()){modal('ยังไม่ได้พิมพ์คำตอบ','พิมพ์คำตอบลงในช่องก่อนส่ง');return}baseCtx.answered=true;const ok=normalize(v)===normalize(ans);if(ok)baseCtx.score+=5;playSfx(ok?'correct':'wrong');inp.disabled=true;const f=b.querySelector('#bFeed');f.className='feedback '+(ok?'good':'bad');f.innerHTML=(ok?'✅ ถูกต้อง +5 ดาว — ':'❌ ข้อนี้ได้ 0 ดาว — ')+ex;const sb=b.querySelector('#bSubmit');sb.textContent=baseCtx.index===max-1?'สรุปผลฐาน':'ข้อต่อไป';sb.classList.add('next')}else{baseCtx.index++;baseCtx.answered=false;if(baseCtx.index>=max){finishBase(baseCtx.i,maxScore);return}renderBase()}};setTimeout(()=>inp.focus(),40)}
+addBaseNav('base3',()=>modal('คำใบ้ฐานที่ 3',baseCtx.currentHint||'ดูภาพแล้วนึกถึงคำอักษรนำที่ตรงกับภาพ'));
+
+const b4=[['ขยะ','ขะ-หยะ'],['สนาม','สะ-หนาม'],['องุ่น','อะ-หงุ่น'],['สมอง','สะ-หมอง'],['ตลอด','ตะ-หลอด']];
+function renderB4(){const b=$('#b4Board');Object.assign(b.style,{left:'30.7%',top:'16.3%',width:'37.8%',height:'51.5%'});const [word,ans]=b4[baseCtx.index];b.innerHTML=commonProgress(b,5)+`<div class="qtitle">สรุปสำนวนคดี</div><div class="qsub">เขียนคำอ่านให้ถูกต้อง แล้วระบบจะเฉลยทีละข้อ</div><div class="qtext" style="font-size:clamp(28px,3vw,50px)">${word}</div><input id="bInput" class="input-answer" autocomplete="off" placeholder="พิมพ์คำอ่าน เช่น ขะ-หยะ"><div class="feedback" id="bFeed">หลักฐานจากฐานที่ 1–3 พร้อมแล้ว เขียนคำอ่านเพื่อปิดคดี</div><button class="submit" id="bSubmit">ส่งคำตอบ</button>`;wireInputBase(ans,`“${word}” อ่านว่า ${ans}`,5,25,'ลองแบ่งพยางค์ และฟังเสียงพยางค์หลังเหมือนมี ห นำ')}
+addBaseNav('base4',()=>modal('คำใบ้ฐานที่ 4',baseCtx.currentHint||'ลองแบ่งคำออกเป็นพยางค์แล้วอ่านช้า ๆ'));
+
+function finishGame(){show('success');const s=$('#success');let stats=s.querySelector('.final-stats');if(!stats){stats=document.createElement('div');stats.className='final-stats';s.appendChild(stats)}const total=totalStars(),qualified=total>=80;playSfx(qualified?'success':'complete');stats.innerHTML=`<div class="final-message">${qualified?'ขอแสดงความยินดี กับผู้ที่ทำคะแนนผ่านเกณฑ์<br>ได้รับเกียติบัตร์ และตั๋วพิเศษสำหรับกล่องจุ่มรางวัล':'ทำภารกิจครบแล้ว<br>คะแนนยังไม่ผ่านเกณฑ์ 80 คะแนน<br>ลองเล่นใหม่อีกครั้งเพื่อพิชิตภารกิจ'}</div><div class="pre-score">${state.preScore}/10</div><div class="post-score">${state.postScore}/10</div><div class="final-status">${qualified?'🏆 ผ่านเกณฑ์ 80 คะแนน':'ต้องได้ 80 คะแนนขึ้นไปเพื่อรับรางวัล'}</div><div class="final-total">ดาวรวม ${total}/150</div>`;let n=s.querySelector('.cert-name');if(!n){n=document.createElement('div');n.className='cert-name';s.appendChild(n)}n.textContent=qualified?state.name:'';if(!s.querySelector('[data-replay]')){const r=document.createElement('button');r.className='plain-link';r.dataset.replay='1';r.style.left='83%';r.style.top='91%';r.textContent='เล่นอีกครั้ง';r.onclick=()=>location.reload();s.appendChild(r)}}
+</script>
+
+<script>
+(function(){
+ const ov=document.getElementById('introOverlay'),v=document.getElementById('introVideo'),start=document.getElementById('introStart'),skip=document.getElementById('introSkip');
+ function enterGame(){try{v.pause();}catch(e){} ov.classList.add('hidden');}
+ start.addEventListener('click',async()=>{start.style.display='none';try{v.muted=false;await v.play();}catch(e){v.controls=true;}});
+ skip.addEventListener('click',enterGame); v.addEventListener('ended',enterGame);
+})();
+</script>
+</body></html>
